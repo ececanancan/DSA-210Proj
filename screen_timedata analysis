@@ -1,0 +1,84 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load screen time data
+df = pd.read_csv("screen_time_data.csv")
+
+
+df['Date'] = pd.to_datetime(df['Date'])
+
+
+df['Weekday'] = df['Date'].dt.day_name()
+
+
+category_columns = ['Social (hrs)', 'Entertainment (hrs)', 'Productivity (hrs)', 'Financial (hrs)', 'Recreation (hrs)']
+df['Category Total (hrs)'] = df[category_columns].sum(axis=1)
+
+
+daily_avg = df['Total Time (hrs)'].mean()
+print(f"Average Daily Screen Time: {daily_avg:.2f} hours")
+
+
+max_day = df.loc[df['Total Time (hrs)'].idxmax()]
+print(f"Day with Highest Screen Time: {max_day['Date'].strftime('%Y-%m-%d')} ({max_day['Total Time (hrs)']} hours)")
+
+
+def calculate_percentages(row):
+    total = row['Category Total (hrs)']
+    return {col: (row[col] / total) * 100 for col in category_columns}
+df_percentages = df.apply(calculate_percentages, axis=1, result_type='expand')
+df_percentages.columns = [f"{col} (%)" for col in category_columns]
+df = pd.concat([df, df_percentages], axis=1)
+
+
+
+plt.figure(figsize=(12, 6))
+plt.plot(df['Date'], df['Total Time (hrs)'], marker='o', color='b', label='Total Time (hrs)')
+plt.title('Total Screen Time Over December 2024')
+plt.xlabel('Date')
+plt.ylabel('Hours')
+plt.grid(True)
+plt.legend()
+plt.savefig('plots/total_screen_time_over_time.png')
+plt.show()
+
+period_means = df[['Morning (hrs)', 'Afternoon (hrs)', 'Evening (hrs)']].mean()
+plt.figure(figsize=(8, 5))
+period_means.plot(kind='bar', color=['skyblue', 'lightgreen', 'salmon'])
+plt.title('Average Screen Time by Period')
+plt.xlabel('Period')
+plt.ylabel('Average Hours')
+plt.xticks(rotation=0)
+plt.savefig('plots/average_screen_time_by_period.png')
+plt.show()
+
+
+category_totals = df[category_columns].sum()
+plt.figure(figsize=(10, 7))
+category_totals.plot(kind='pie', autopct='%1.1f%%', startangle=140, colormap='Pastel1')
+plt.title('Screen Time by Category Distribution')
+plt.ylabel('')
+plt.savefig('plots/category_distribution.png')
+plt.show()
+
+
+weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+df['Day'] = pd.Categorical(df['Weekday'], categories=weekday_order, ordered=True)
+weekday_means = df.groupby('Day')['Total Time (hrs)'].mean()
+plt.figure(figsize=(10, 5))
+sns.barplot(x=weekday_means.index, y=weekday_means.values, palette='coolwarm')
+plt.title('Average Screen Time by Day of the Week')
+plt.xlabel('Day')
+plt.ylabel('Average Total Time (hrs)')
+plt.xticks(rotation=45)
+plt.savefig('plots/weekly_trends.png')
+plt.show()
+
+
+plt.figure(figsize=(10, 6))
+correlation_matrix = df[['Total Time (hrs)', 'Social (hrs)', 'Entertainment (hrs)', 'Productivity (hrs)', 'Financial (hrs)', 'Recreation (hrs)']].corr()
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Correlation Between Screen Time Categories')
+plt.savefig('plots/correlation_heatmap.png')
+plt.show()
