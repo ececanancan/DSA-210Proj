@@ -1,0 +1,60 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Assume screen time data for each day in December 2024
+days = pd.date_range(start="2024-12-01", end="2024-12-31", freq='D')
+data = [
+    {"Date": day, "Day": day.strftime('%A'), "Total Time (hrs)": 5.5, "Social (hrs)": 3.0, "Entertainment (hrs)": 1.0, "Productivity (hrs)": 0.5, "Financial (hrs)": 0.5, "Recreation (hrs)": 0.5, "Morning (hrs)": 1.5, "Afternoon (hrs)": 2.0, "Evening (hrs)": 2.0}
+    for day in days
+]
+
+# Create DataFrame
+df = pd.DataFrame(data)
+
+# Save to CSV for analysis
+df.to_csv("screen_time_data.csv", index=False)
+
+# Exploratory Data Analysis (EDA)
+# 1. Summary Statistics
+print("Summary Statistics:")
+print(df.describe())
+
+# 2. Total Screen Time Over Time
+plt.figure(figsize=(12, 6))
+plt.plot(df['Date'], df['Total Time (hrs)'], marker='o', color='b', label='Total Time (hrs)')
+plt.title('Total Screen Time Over December 2024')
+plt.xlabel('Date')
+plt.ylabel('Hours')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# 3. Average Screen Time by Period
+period_means = df[['Morning (hrs)', 'Afternoon (hrs)', 'Evening (hrs)']].mean()
+plt.figure(figsize=(8, 5))
+period_means.plot(kind='bar', color=['skyblue', 'lightgreen', 'salmon'])
+plt.title('Average Screen Time by Period')
+plt.xlabel('Period')
+plt.ylabel('Average Hours')
+plt.xticks(rotation=0)
+plt.show()
+
+# 4. Screen Time by Category Distribution
+category_totals = df[['Social (hrs)', 'Entertainment (hrs)', 'Productivity (hrs)', 'Financial (hrs)', 'Recreation (hrs)']].sum()
+plt.figure(figsize=(10, 7))
+category_totals.plot(kind='pie', autopct='%1.1f%%', startangle=140, colormap='Pastel1')
+plt.title('Screen Time by Category Distribution')
+plt.ylabel('')
+plt.show()
+
+# 5. Weekly Patterns
+weekday_means = df.groupby('Day')['Total Time (hrs)'].mean().reindex(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+plt.figure(figsize=(10, 5))
+sns.barplot(x=weekday_means.index, y=weekday_means.values, palette='coolwarm')
+plt.title('Average Screen Time by Day of the Week')
+plt.xlabel('Day')
+plt.ylabel('Average Total Time (hrs)')
+plt.xticks(rotation=45)
+plt.show()
+
